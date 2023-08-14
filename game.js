@@ -1,53 +1,87 @@
+// array that has 4 colours
+var buttonColours = ["red", "blue", "green", "yellow"];
+
 // array that will store the game patterns
 var gamePattern = [];
 
 // array that will store the user's click patterns
 var userClickedPattern = [];
 
-
-// sound variables
-var yellowAudio = new Audio("./sounds/yellow.mp3");
-var greenAudio = new Audio("./sounds/green.mp3");
-var redAudio = new Audio("./sounds/red.mp3");
-var blueAudio = new Audio("./sounds/blue.mp3");
-var wrongAudio = new Audio("./sounds/wrong.mp3");
-
-// array that has 4 colours
-var buttonColours = ["red", "blue", "green", "yellow"];
-
-
+var level = 0;
 
 function playSound(name) {
-    if (name == "red") {redAudio.play();} 
-    else if (name == "blue") {blueAudio.play();} 
-    else if (name == "green") {greenAudio.play();} 
-    else if (name == "yellow") {yellowAudio.play();}
+    var audio = new Audio("sounds/" + name + ".mp3");
+    audio.play();
 }
 
 // return the random number 0 ~ 3
 function nextSequence() {
-    var randNum = Math.floor(Math.random() * 4);
-    randomChosenColour = buttonColours[randNum];
+    var randNumber = Math.floor(Math.random() * 4);
+    randomChosenColour = buttonColours[randNumber];
     gamePattern.push(randomChosenColour);
+
     playSound(randomChosenColour);
+
     $("#" + randomChosenColour).fadeOut(100).fadeIn(100);
+
+    level++;
+    $("h1").text("Level " + level);
 }
-
-nextSequence();
-
 
 
 // click animation & sound effect 
 $(".btn").click(function(event) {
-    $("#" + event.target.id).fadeOut(100).fadeIn(100);
-    playSound(event.target.id);
-})
-
-
-
-// function that store the user's chosen color
-$(".btn").click(function(event) {
-    var userChosenColor = event.target.id;
+    var userChosenColor = $(this).attr("id");
     userClickedPattern.push(userChosenColor);
-    console.log(userClickedPattern);
+
+    playSound(userChosenColor);
+
+    animatePress($(this).attr("id"));
+    $("#" + event.target.id).fadeOut(100).fadeIn(100);
+
+    if (level !== 0 && level === userClickedPattern.length) {
+        setTimeout(function(){
+        nextSequence();
+        userClickedPattern = [];
+    }, 1000)}
+        checkAnswer(userClickedPattern.length - 1);
 })
+
+function animatePress(currentColour) {
+    $("#" + currentColour).toggleClass("pressed");
+
+    setTimeout(function() {
+        $("#" + currentColour).toggleClass("pressed");
+    }, 100)
+}
+
+$(document).keypress(function() {
+    if(level === 0) {
+        nextSequence();
+    }
+})
+
+function checkAnswer(currentLevel) {
+    if (userClickedPattern[currentLevel] === gamePattern[currentLevel]) {
+        console.log("success");
+    } else {
+        var wrongAudio = new Audio("sounds/wrong.mp3");
+        wrongAudio.play();
+        
+        $("body").addClass("game-over");
+        $("h1").text("Game Over, Press Any Key to Restart");
+
+        setTimeout(function() {
+            $("body").removeClass("game-over");
+        }, 200)
+
+        startOver();
+    }
+
+}
+
+function startOver() {
+    level = 0;
+    gamePattern = [];
+    userClickedPattern = [];
+}
